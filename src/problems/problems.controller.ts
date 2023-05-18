@@ -22,7 +22,7 @@ export class ProblemsController {
 
   @UseGuards(JwtAuthGuard, TenantGuard)
   @UseInterceptors(AnyFilesInterceptor())
-  @Post("/create")
+  @Post()
   async create(@Req() req, @Body() body, @UploadedFiles() files: Array<Express.Multer.File>) {
     try {
 
@@ -53,7 +53,7 @@ export class ProblemsController {
 
 
 @UseGuards(JwtAuthGuard, TenantGuard)
-@Get('/user/problems')
+@Get()
 async findAllUsersProblems(@Request() req: any) {
   try {
     return await this.problemsService.findAllUsersProblems(req.user.tenantId);
@@ -71,7 +71,7 @@ async findAllUsersProblems(@Request() req: any) {
 
 
   @UseGuards(JwtAuthGuard, TenantGuard)
-  @Get('/user/problem/:id')
+  @Get('/:id')
   async findOneSingleUsersProblem(@Param('id') id: string, @Request() req: any) {
     try {
       return await this.problemsService.findOneSingleUsersProblem(+id, req.user.tenantId);
@@ -90,7 +90,7 @@ async findAllUsersProblems(@Request() req: any) {
 
   @UseGuards(JwtAuthGuard, TenantGuard)
   @UseInterceptors(AnyFilesInterceptor())
-  @Patch('/user/problem/:id')
+  @Patch('/:id')
   async updateOneSingleUsersProblem(@Param('id') id: string, @Body() updateProblemDto: UpdateProblemDto,@Request() req: any,@UploadedFiles() files: Array<Express.Multer.File>) {
     try {
       return await this.problemsService.updateProblem(+id, req.user.tenantId, updateProblemDto, files);
@@ -112,7 +112,7 @@ async findAllUsersProblems(@Request() req: any) {
 
 
   @UseGuards(JwtAuthGuard, TenantGuard)
-  @Delete('/user/problem/:id')
+  @Delete('/:id')
   async removeOneSingleUsersProblem(@Param('id') id: string,@Request() req: any) {
     try {
       return await this.problemsService.removeOneSingleUsersProblem(+id, req.user.tenantId);
@@ -149,7 +149,7 @@ async findAllUsersProblems(@Request() req: any) {
 
 
   @UseGuards(JwtAuthGuard, AdminGuard)
-  @Get('/all')
+  @Get('/admin/all')
   async findAll(@Request() req: any) {
     try {
       return await this.problemsService.findAll();
@@ -159,7 +159,7 @@ async findAllUsersProblems(@Request() req: any) {
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)
-  @Get('/problem/:id')
+  @Get('/admin/:id')
   async findOne(@Param('id') id: string, @Request() req: any) {
     try {
       return await this.problemsService.findOne(+id);
