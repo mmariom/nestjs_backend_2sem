@@ -1,0 +1,114 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=elective
+    volumes:
+      - mysunshine:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    image: mmatejovic/backend-nestjs-2sem:latest
+    ports:
+      - 3003:3003
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin
+      - DB_DATABASE=elective
+    command: >
+      /bin/sh -c "
+        echo 'Waiting for postgres...'
+        while ! nc -z db 5432; do
+          sleep 1
+        done
+        echo 'Postgres started'
+        npm run migration:generate -- db/migrations/dbschema
+        npm run migration:run
+        npm start
+      "
+
+  data-injection:
+    image: postgres:13
+    volumes:
+      - ./dummy-data.sql:/dummy-data.sql
+    depends_on:
+      - app
+    entrypoint: >
+      /bin/sh -c "
+        apt-get update && apt-get install -y netcat
+        echo 'Waiting for app service...'
+        while ! nc -z app 3003; do
+          sleep 1
+        done
+        echo 'App service started'
+        sleep 10  # Wait for the app service to fully start
+        PGPASSWORD=admin psql -h db -U admin -d elective -W -f /dummy-data.sql
+        echo 'Data injection completed'
+      "
+
+volumes:
+  mysunshine:
+
+
+
+
+
+# version: '3.8'
+# services:
+#   app:
+#     image: mmatejovic/backend-nestjs-2sem:migrationtest
+#     ports:
+#       - 3003:3003
+#     depends_on:
+#       - db
+#     environment:
+#       - DB_HOST=db
+#       - DB_PORT=5432
+#       - DB_USERNAME=admin
+#       - DB_PASSWORD=admin
+#       - DB_DATABASE=elective
+#     command: >
+#       /bin/sh -c "
+#         echo 'Waiting for postgres...'
+#         while ! nc -z db 5432; do
+#           sleep 1
+#         done
+#         echo 'Postgres started'
+#         npm run migration:generate -- db/migrations/dbschema
+#         npm run migration:run
+#         npm start
+#       "
+#   db:
+#     image: postgres:13
+#     environment:
+#       - POSTGRES_USER=admin
+#       - POSTGRES_PASSWORD=admin
+#       - POSTGRES_DB=elective
+#     volumes:
+#       - mysunshinetest:/var/lib/postgresql/data
+#     ports:
+#       - "5432:5432"
+
+# volumes:
+#   mysunshinetest:
+
+
+
+
+
+
+
+
+
+
+
+
+
