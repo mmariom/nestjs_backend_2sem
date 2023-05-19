@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdministratorEntity } from '../authentication/entities/admin.entity';
 import { Tenant } from '../authentication/entities/tenant.entity';
@@ -8,6 +8,7 @@ import { Role } from './role';
 
 import { ConflictException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import { UserProfileDto } from './UserProfileDto';
 
 
 // This should be a real class/interface representing a user entity
@@ -117,22 +118,70 @@ async create_tenant(username: string, password: string, email: string, name: str
   
 
 
-
-async findOne(username: string): Promise<UserEntity> {
-  if (!username) {
-    throw new BadRequestException('Username is required.');
+  async findOne(username: string): Promise<UserEntity> {
+    if (!username) {
+      throw new BadRequestException('Username is required.');
+    }
+  
+    const result = await this.userRepository.findOne({ where: { username }, relations: { tenant: true } });
+    if (!result) {
+      throw new BadRequestException('User does not exist.');
+    }
+  
+    return result;
   }
 
-  const result = await this.userRepository.findOne({ where: { username }, relations: { tenant: true } });
-  if (!result) {
-    throw new BadRequestException('User does not exist.');
-  }
+  
 
-  return result;
-}
+
+
+
+
+// async findUserProfile(tenantId: number): Promise<UserEntity> {
+//     const user = await this.userRepository.findOne({
+//       relations: ['tenant'],
+//       where: { tenant: { id: tenantId } },
+//     });
+
+//     if (!user) {
+//       throw new NotFoundException('User not found');
+//     }
+
+//     return user;
+//   }
+
+
+  async findUserProfile(tenantId: number): Promise<UserProfileDto> {
+    const user = await this.userRepository.findOne({
+      relations: ['tenant'],
+      where: { tenant: { id: tenantId } },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    //just and example how we can  map values from repository to dto
+    // in initial response we also getting hashed password, so we need to remove it
+    // we can also use class-transformer library to do it or mapper....
+    const userProfileDto = new UserProfileDto({
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      role: user.role,
+      tenant: {
+        id: user.tenant.id,
+        email: user.tenant.email,
+      },
+    });
+
+    return userProfileDto;
+  }
 
 
 
     
 }
+
+
 
