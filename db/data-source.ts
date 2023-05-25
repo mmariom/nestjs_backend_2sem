@@ -23,8 +23,9 @@
 
 // commands  
 //  npm run migration:generate -- db/migrations/newmig
+//  npx typeorm migration:create db/migrations/test
 //  npm run migration:run
-// npx typeorm migration:create db/migrations/test
+
 
 
 // import { ConfigService } from '@nestjs/config';
